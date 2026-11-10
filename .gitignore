@@ -111,3 +111,10 @@ dist
 
 # TernJS port file
 .tern-port
+
+# TanStack Start / Vite
+.tanstack/
+.output/
+.nitro/
+.vinxi/
+*.local
