@@ -4,6 +4,64 @@
  */
 
 export interface paths {
+    "/api/works/{workId}/exports": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Lists the most recent exports of a work (newest first). */
+        get: operations["ListExports"];
+        put?: never;
+        /**
+         * Queues an export of the work's current document.
+         * @description Returns 400 with the missing data (by path) when the work is not ready to be exported.
+         */
+        post: operations["CreateExport"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/exports/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Status of an export job. */
+        get: operations["GetExport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/exports/{id}/file": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Downloads the generated file.
+         * @description 409 while the job is not finished (or failed); 410 after the file expired.
+         */
+        get: operations["DownloadExport"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/health": {
         parameters: {
             query?: never;
@@ -159,6 +217,11 @@ export interface components {
         };
         /** @enum {unknown} */
         CitationMode: "parenthetical" | "narrative";
+        /** @description Requests a new export of the work's current document. */
+        CreateExportRequest: {
+            /** @description docx or pdf. */
+            format: components["schemas"]["ExportFormat"];
+        };
         /** @description Creates a work with an empty document for the chosen norm profile. */
         CreateWorkRequest: {
             /** @description Norm profile id (see `GET /api/profiles`). */
@@ -245,6 +308,65 @@ export interface components {
             /** @description Bibliographic references (CSL-JSON compatible). Citations point to string CslItem.Id. */
             references: components["schemas"]["CslItem"][];
         };
+        /** @enum {unknown} */
+        ExportFormat: "docx" | "pdf";
+        /** @description Status of an export job. Poll until `status` is succeeded or failed. */
+        ExportJobResponse: {
+            /**
+             * Format: uuid
+             * @description Job id.
+             */
+            id: string;
+            /**
+             * Format: uuid
+             * @description Exported work.
+             */
+            workId: string;
+            /** @description docx or pdf. */
+            format: components["schemas"]["ExportFormat"];
+            /** @description queued, running, succeeded, failed or expired. */
+            status: components["schemas"]["ExportStatus"];
+            /**
+             * Format: int32
+             * @description Work version that was exported.
+             */
+            documentVersion: number;
+            /** @description Suggested download name. */
+            fileName: string;
+            /**
+             * Format: int64
+             * @description Size in bytes, when succeeded.
+             */
+            fileSize: null | number;
+            /** @description Why the export failed (user-facing). */
+            error: null | string;
+            /** @description Content that could not be rendered (user-facing). */
+            warnings: string[];
+            /**
+             * Format: date-time
+             * @description When the export was requested.
+             */
+            createdAt: string;
+            /**
+             * Format: date-time
+             * @description When processing started.
+             */
+            startedAt: null | string;
+            /**
+             * Format: date-time
+             * @description When processing finished.
+             */
+            completedAt: null | string;
+            /**
+             * Format: date-time
+             * @description When the file stops being available.
+             */
+            expiresAt: null | string;
+            /** @description Relative URL of the file, when succeeded. */
+            downloadUrl: null | string;
+        };
+        /** @enum {unknown} */
+        ExportStatus: "queued" | "running" | "succeeded" | "failed" | "expired";
         /** @enum {unknown} */
         FontFamilyOption: "timesNewRoman" | "arial" | null;
         GeneratedLists: {
@@ -367,6 +489,8 @@ export interface components {
             blocks: components["schemas"]["Block"][];
             children: components["schemas"]["Section"][];
         };
+        /** Format: binary */
+        Stream: string;
         TableCell: {
             content: components["schemas"]["Inline"][];
             /** Format: int32 */
@@ -449,6 +573,169 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    ListExports: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/plain": components["schemas"]["ExportJobResponse"][];
+                    "application/json": components["schemas"]["ExportJobResponse"][];
+                    "text/json": components["schemas"]["ExportJobResponse"][];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    CreateExport: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateExportRequest"];
+                "application/*+json": components["schemas"]["CreateExportRequest"];
+            };
+        };
+        responses: {
+            /** @description Accepted */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/plain": components["schemas"]["ExportJobResponse"];
+                    "application/json": components["schemas"]["ExportJobResponse"];
+                    "text/json": components["schemas"]["ExportJobResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ValidationProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    GetExport: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/plain": components["schemas"]["ExportJobResponse"];
+                    "application/json": components["schemas"]["ExportJobResponse"];
+                    "text/json": components["schemas"]["ExportJobResponse"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    DownloadExport: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/pdf": components["schemas"]["Stream"];
+                    "application/vnd.openxmlformats-officedocument.wordprocessingml.document": components["schemas"]["Stream"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Conflict */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Gone */
+            410: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
     GetHealth: {
         parameters: {
             query?: never;
