@@ -13,6 +13,12 @@ import { Route as PrivateRouteRouteImport } from './routes/_private/route'
 import { Route as PublicRouteRouteImport } from './routes/_public/route'
 import { Route as PublicIndexRouteImport } from './routes/_public/index'
 import { Route as PrivateWorksIndexRouteImport } from './routes/_private/works/index'
+import { Route as PrivateWorksWorkIdRouteRouteImport } from './routes/_private/works/$workId/route'
+import { Route as PrivateWorksWorkIdIndexRouteImport } from './routes/_private/works/$workId/index'
+import { Route as PrivateWorksWorkIdEditorRouteImport } from './routes/_private/works/$workId/editor'
+import { Route as PrivateWorksWorkIdExportRouteImport } from './routes/_private/works/$workId/export'
+import { Route as PrivateWorksWorkIdMetadataRouteImport } from './routes/_private/works/$workId/metadata'
+import { Route as PrivateWorksWorkIdPreviewRouteImport } from './routes/_private/works/$workId/preview'
 
 const PrivateRouteRoute = PrivateRouteRouteImport.update({
   id: '/_private',
@@ -32,28 +38,105 @@ const PrivateWorksIndexRoute = PrivateWorksIndexRouteImport.update({
   path: '/works/',
   getParentRoute: () => PrivateRouteRoute,
 } as any)
+const PrivateWorksWorkIdRouteRoute = PrivateWorksWorkIdRouteRouteImport.update({
+  id: '/works/$workId',
+  path: '/works/$workId',
+  getParentRoute: () => PrivateRouteRoute,
+} as any)
+const PrivateWorksWorkIdIndexRoute = PrivateWorksWorkIdIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => PrivateWorksWorkIdRouteRoute,
+} as any)
+const PrivateWorksWorkIdEditorRoute =
+  PrivateWorksWorkIdEditorRouteImport.update({
+    id: '/editor',
+    path: '/editor',
+    getParentRoute: () => PrivateWorksWorkIdRouteRoute,
+  } as any)
+const PrivateWorksWorkIdExportRoute =
+  PrivateWorksWorkIdExportRouteImport.update({
+    id: '/export',
+    path: '/export',
+    getParentRoute: () => PrivateWorksWorkIdRouteRoute,
+  } as any)
+const PrivateWorksWorkIdMetadataRoute =
+  PrivateWorksWorkIdMetadataRouteImport.update({
+    id: '/metadata',
+    path: '/metadata',
+    getParentRoute: () => PrivateWorksWorkIdRouteRoute,
+  } as any)
+const PrivateWorksWorkIdPreviewRoute =
+  PrivateWorksWorkIdPreviewRouteImport.update({
+    id: '/preview',
+    path: '/preview',
+    getParentRoute: () => PrivateWorksWorkIdRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof PublicIndexRoute
+  '/works/$workId': typeof PrivateWorksWorkIdRouteRouteWithChildren
   '/works/': typeof PrivateWorksIndexRoute
+  '/works/$workId/editor': typeof PrivateWorksWorkIdEditorRoute
+  '/works/$workId/export': typeof PrivateWorksWorkIdExportRoute
+  '/works/$workId/metadata': typeof PrivateWorksWorkIdMetadataRoute
+  '/works/$workId/preview': typeof PrivateWorksWorkIdPreviewRoute
+  '/works/$workId/': typeof PrivateWorksWorkIdIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof PublicIndexRoute
   '/works': typeof PrivateWorksIndexRoute
+  '/works/$workId/editor': typeof PrivateWorksWorkIdEditorRoute
+  '/works/$workId/export': typeof PrivateWorksWorkIdExportRoute
+  '/works/$workId/metadata': typeof PrivateWorksWorkIdMetadataRoute
+  '/works/$workId/preview': typeof PrivateWorksWorkIdPreviewRoute
+  '/works/$workId': typeof PrivateWorksWorkIdIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/_private': typeof PrivateRouteRouteWithChildren
   '/_public': typeof PublicRouteRouteWithChildren
   '/_public/': typeof PublicIndexRoute
+  '/_private/works/$workId': typeof PrivateWorksWorkIdRouteRouteWithChildren
   '/_private/works/': typeof PrivateWorksIndexRoute
+  '/_private/works/$workId/editor': typeof PrivateWorksWorkIdEditorRoute
+  '/_private/works/$workId/export': typeof PrivateWorksWorkIdExportRoute
+  '/_private/works/$workId/metadata': typeof PrivateWorksWorkIdMetadataRoute
+  '/_private/works/$workId/preview': typeof PrivateWorksWorkIdPreviewRoute
+  '/_private/works/$workId/': typeof PrivateWorksWorkIdIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/works/'
+  fullPaths:
+    | '/'
+    | '/works/$workId'
+    | '/works/'
+    | '/works/$workId/editor'
+    | '/works/$workId/export'
+    | '/works/$workId/metadata'
+    | '/works/$workId/preview'
+    | '/works/$workId/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/works'
-  id: '__root__' | '/_private' | '/_public' | '/_public/' | '/_private/works/'
+  to:
+    | '/'
+    | '/works'
+    | '/works/$workId/editor'
+    | '/works/$workId/export'
+    | '/works/$workId/metadata'
+    | '/works/$workId/preview'
+    | '/works/$workId'
+  id:
+    | '__root__'
+    | '/_private'
+    | '/_public'
+    | '/_public/'
+    | '/_private/works/$workId'
+    | '/_private/works/'
+    | '/_private/works/$workId/editor'
+    | '/_private/works/$workId/export'
+    | '/_private/works/$workId/metadata'
+    | '/_private/works/$workId/preview'
+    | '/_private/works/$workId/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -91,14 +174,80 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PrivateWorksIndexRouteImport
       parentRoute: typeof PrivateRouteRoute
     }
+    '/_private/works/$workId': {
+      id: '/_private/works/$workId'
+      path: '/works/$workId'
+      fullPath: '/works/$workId'
+      preLoaderRoute: typeof PrivateWorksWorkIdRouteRouteImport
+      parentRoute: typeof PrivateRouteRoute
+    }
+    '/_private/works/$workId/': {
+      id: '/_private/works/$workId/'
+      path: '/'
+      fullPath: '/works/$workId/'
+      preLoaderRoute: typeof PrivateWorksWorkIdIndexRouteImport
+      parentRoute: typeof PrivateWorksWorkIdRouteRoute
+    }
+    '/_private/works/$workId/editor': {
+      id: '/_private/works/$workId/editor'
+      path: '/editor'
+      fullPath: '/works/$workId/editor'
+      preLoaderRoute: typeof PrivateWorksWorkIdEditorRouteImport
+      parentRoute: typeof PrivateWorksWorkIdRouteRoute
+    }
+    '/_private/works/$workId/export': {
+      id: '/_private/works/$workId/export'
+      path: '/export'
+      fullPath: '/works/$workId/export'
+      preLoaderRoute: typeof PrivateWorksWorkIdExportRouteImport
+      parentRoute: typeof PrivateWorksWorkIdRouteRoute
+    }
+    '/_private/works/$workId/metadata': {
+      id: '/_private/works/$workId/metadata'
+      path: '/metadata'
+      fullPath: '/works/$workId/metadata'
+      preLoaderRoute: typeof PrivateWorksWorkIdMetadataRouteImport
+      parentRoute: typeof PrivateWorksWorkIdRouteRoute
+    }
+    '/_private/works/$workId/preview': {
+      id: '/_private/works/$workId/preview'
+      path: '/preview'
+      fullPath: '/works/$workId/preview'
+      preLoaderRoute: typeof PrivateWorksWorkIdPreviewRouteImport
+      parentRoute: typeof PrivateWorksWorkIdRouteRoute
+    }
   }
 }
 
+interface PrivateWorksWorkIdRouteRouteChildren {
+  PrivateWorksWorkIdEditorRoute: typeof PrivateWorksWorkIdEditorRoute
+  PrivateWorksWorkIdExportRoute: typeof PrivateWorksWorkIdExportRoute
+  PrivateWorksWorkIdMetadataRoute: typeof PrivateWorksWorkIdMetadataRoute
+  PrivateWorksWorkIdPreviewRoute: typeof PrivateWorksWorkIdPreviewRoute
+  PrivateWorksWorkIdIndexRoute: typeof PrivateWorksWorkIdIndexRoute
+}
+
+const PrivateWorksWorkIdRouteRouteChildren: PrivateWorksWorkIdRouteRouteChildren =
+  {
+    PrivateWorksWorkIdEditorRoute: PrivateWorksWorkIdEditorRoute,
+    PrivateWorksWorkIdExportRoute: PrivateWorksWorkIdExportRoute,
+    PrivateWorksWorkIdMetadataRoute: PrivateWorksWorkIdMetadataRoute,
+    PrivateWorksWorkIdPreviewRoute: PrivateWorksWorkIdPreviewRoute,
+    PrivateWorksWorkIdIndexRoute: PrivateWorksWorkIdIndexRoute,
+  }
+
+const PrivateWorksWorkIdRouteRouteWithChildren =
+  PrivateWorksWorkIdRouteRoute._addFileChildren(
+    PrivateWorksWorkIdRouteRouteChildren,
+  )
+
 interface PrivateRouteRouteChildren {
+  PrivateWorksWorkIdRouteRoute: typeof PrivateWorksWorkIdRouteRouteWithChildren
   PrivateWorksIndexRoute: typeof PrivateWorksIndexRoute
 }
 
 const PrivateRouteRouteChildren: PrivateRouteRouteChildren = {
+  PrivateWorksWorkIdRouteRoute: PrivateWorksWorkIdRouteRouteWithChildren,
   PrivateWorksIndexRoute: PrivateWorksIndexRoute,
 }
 
