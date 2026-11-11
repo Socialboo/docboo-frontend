@@ -4,6 +4,41 @@
  */
 
 export interface paths {
+    "/api/works/{workId}/assets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Lists the images of a work. */
+        get: operations["ListAssets"];
+        put?: never;
+        /** Uploads an image for the work. Use the returned `id` as the figure's `assetId`. */
+        post: operations["UploadAsset"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/assets/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Returns the image content. */
+        get: operations["GetAsset"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/works/{workId}/exports": {
         parameters: {
             query?: never;
@@ -161,6 +196,42 @@ export interface components {
             /** @description Plain text. Paragraph breaks are `\n`. */
             text: string;
             keywords: string[];
+        };
+        /** @description An uploaded image. */
+        AssetResponse: {
+            /** @description Use as `assetId` in figure blocks. */
+            id: string;
+            /**
+             * Format: uuid
+             * @description Work the image belongs to.
+             */
+            workId: string;
+            /** @description image/png or image/jpeg (detected from the content). */
+            contentType: string;
+            /**
+             * Format: int32
+             * @description Width in pixels.
+             */
+            width: number;
+            /**
+             * Format: int32
+             * @description Height in pixels.
+             */
+            height: number;
+            /**
+             * Format: int64
+             * @description File size.
+             */
+            sizeBytes: number;
+            /** @description Uploaded file name (display only). */
+            originalName: string;
+            /** @description Relative URL of the image. */
+            url: string;
+            /**
+             * Format: date-time
+             * @description Upload time.
+             */
+            createdAt: string;
         };
         /** @description Appendix (written by the author) or annex (third-party material). */
         Attachment: {
@@ -393,6 +464,8 @@ export interface components {
             /** @description Individual dependency checks (database, etc.). */
             checks: components["schemas"]["HealthCheckEntry"][];
         };
+        /** Format: binary */
+        IFormFile: string;
         /** @description Inline content inside a block. Discriminated by `type`; mirrors the editor (Tiptap) node types. */
         Inline: components["schemas"]["InlineTextInline"] | components["schemas"]["InlineHardBreakInline"] | components["schemas"]["InlineCitationInline"] | components["schemas"]["InlineFootnoteInline"];
         /** @description Citation of one or more references (author-date system). */
@@ -573,6 +646,130 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    ListAssets: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/plain": components["schemas"]["AssetResponse"][];
+                    "application/json": components["schemas"]["AssetResponse"][];
+                    "text/json": components["schemas"]["AssetResponse"][];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    UploadAsset: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                workId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": {
+                    file?: components["schemas"]["IFormFile"];
+                };
+            };
+        };
+        responses: {
+            /** @description Created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/plain": components["schemas"]["AssetResponse"];
+                    "application/json": components["schemas"]["AssetResponse"];
+                    "text/json": components["schemas"]["AssetResponse"];
+                };
+            };
+            /** @description Bad Request */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ValidationProblemDetails"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+            /** @description Payload Too Large */
+            413: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "text/plain": components["schemas"]["ProblemDetails"];
+                    "application/json": components["schemas"]["ProblemDetails"];
+                    "text/json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
+    GetAsset: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description OK */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "image/png": components["schemas"]["Stream"];
+                    "image/jpeg": components["schemas"]["Stream"];
+                };
+            };
+            /** @description Not Found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/problem+json": components["schemas"]["ProblemDetails"];
+                };
+            };
+        };
+    };
     ListExports: {
         parameters: {
             query?: never;
