@@ -9,6 +9,8 @@ import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 import { TanStackDevtools } from '@tanstack/react-devtools'
 
 import TanStackQueryDevtools from '../integrations/tanstack-query/devtools'
+import { Toaster } from '#/components/ui/sonner'
+import { TooltipProvider } from '#/components/ui/tooltip'
 
 import appCss from '../styles.css?url'
 
@@ -53,7 +55,10 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 function RootComponent() {
   return (
     <ClientOnly>
-      <Outlet />
+      <TooltipProvider>
+        <Outlet />
+        <Toaster richColors position="bottom-right" />
+      </TooltipProvider>
     </ClientOnly>
   )
 }

@@ -6,8 +6,24 @@ Interface web do **Docboo**, o formatador de trabalhos acadêmicos (MVP: ABNT pa
 - React 19 + TypeScript + Vite;
 - TanStack Start em **modo SPA** (sem SSR), com Router, Query e Form;
 - shadcn (Base UI) + Tailwind 4;
+- editor Tiptap 3;
+- pdf.js;
 - cliente tipado `openapi-fetch`;
 - gerenciador de pacotes: **bun**.
+
+## Telas
+
+| Rota | Tela |
+| --- | --- |
+| `/works` | Lista de trabalhos: criar (escolhendo a norma), abrir e excluir |
+| `/works/:id/metadata` | Assistente de capa, folha de rosto e elementos pré-textuais (4 etapas, validação com zod) |
+| `/works/:id/editor` | Editor estruturado: árvore de seções/apêndices/anexos; editor Tiptap; painel de propriedades (figura, tabela, citação, nota) e de referências (adicionar, editar, importar BibTeX, citar) |
+| `/works/:id/preview` | Pré-visualização aproximada em tempo real e "Gerar PDF real" (pdf.js) |
+| `/works/:id/export` | Exportar `.docx`/PDF, acompanhar o status, baixar e corrigir o que falta (com link para a tela certa) |
+
+- O trabalho é salvo automaticamente, com debounce. O cabeçalho mostra o status: salvo, salvando, sem conexão ou conflito.
+- Se outra janela salvar antes, a tela oferece **Recarregar** ou **Manter as minhas**.
+- Os detalhes estão em [docs/adr/0002-editor-and-autosave.md](docs/adr/0002-editor-and-autosave.md).
 
 ## Pré-requisito: a API
 
@@ -47,23 +63,32 @@ docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build
 - O nginx usa o template `docker/nginx/default.conf.template`, que o próprio entrypoint da imagem processa com envsubst.
 - As imagens usam a tag `latest` (`oven/bun:latest` para build/dev e `nginx:latest` em produção).
 
-## Rotas
-
-As rotas são baseadas em arquivos (TanStack Router) e separadas em dois grupos *pathless*: o nome da pasta não aparece na URL.
+## Estrutura
 
 ```
-src/routes/
-├─ __root.tsx               shell HTML + contexto do router (queryClient, auth)
-├─ _public/                 páginas abertas
-│  ├─ route.tsx             layout público
-│  └─ index.tsx             /            (página inicial)
-└─ _private/                páginas que exigem usuário autenticado
-   ├─ route.tsx             layout privado + guarda (beforeLoad → redirect para /)
-   └─ works/index.tsx       /works       (meus trabalhos)
+src/
+├─ api/                 cliente openapi-fetch, tipos gerados e queries do TanStack Query
+├─ document-model/      tipos do modelo (do OpenAPI), conversão modelo ↔ Tiptap, seções,
+│                       citações, BibTeX e ids, com testes (bun test)
+├─ features/
+│  ├─ works/            lista e criação de trabalhos
+│  ├─ work/             WorkProvider (estado do documento + salvamento automático) e status de salvamento
+│  ├─ metadata/         assistente de capa e folha de rosto
+│  ├─ editor/           árvore de seções, editor Tiptap, nós próprios, barra de ferramentas e painéis
+│  ├─ preview/          pré-visualização aproximada e visualizador de PDF
+│  └─ export/           exportação e status dos jobs
+├─ auth/                estado de autenticação (usuário local no MVP)
+└─ routes/
+   ├─ _public/          páginas abertas
+   └─ _private/         páginas que exigem usuário (guarda em route.tsx)
 ```
 
-- Uma página nova aberta vai em `_public/`. Uma página que exige login vai em `_private/` e herda a guarda automaticamente.
-- Ainda não há login: `src/auth/auth.ts` expõe um usuário local sempre autenticado, espelhando o usuário local da API. Para adotar autenticação real, basta trocar esse provedor; a guarda não muda.
+### Rotas públicas e privadas
+
+As rotas são separadas em dois grupos *pathless*: o nome da pasta não aparece na URL.
+- Uma página nova aberta vai em `_public/`.
+- Uma página que exige login vai em `_private/` e herda a guarda automaticamente.
+- Ainda não há login: `src/auth/auth.ts` expõe um usuário local sempre autenticado, espelhando o usuário local da API. Para adotar autenticação real, basta trocar esse provedor.
 
 ## Cliente tipado (OpenAPI → TypeScript)
 
@@ -73,7 +98,7 @@ bun run gen:api
 
 - O comando gera `src/api/schema.gen.d.ts` a partir de `http://localhost:5248/openapi/v1.json`, com a API rodando.
 - Para usar outra fonte, defina `OPENAPI_SOURCE` com uma URL ou um caminho de arquivo, por exemplo `../docboo-backend/Backend/openapi/openapi.json`.
-- O arquivo gerado fica versionado. **Nunca escreva tipos da API à mão.**
+- O arquivo gerado fica versionado. **Nunca escreva tipos da API à mão**: até os tipos do modelo de documento vêm daí (`src/document-model/types.ts`).
 
 ## Scripts
 
@@ -81,10 +106,11 @@ bun run gen:api
 | --- | --- |
 | `bun run dev` | Servidor de desenvolvimento (porta 3000) |
 | `bun run build` | Build estático (`dist/client`) |
+| `bun test src` / `bun run test` | Testes do modelo de documento (conversão, seções, citações, BibTeX, ids) |
 | `bun run typecheck` | `tsc --noEmit` |
 | `bun run lint` | ESLint |
 | `bun run gen:api` | Regenera os tipos da API |
 
 ## Documentação
 
-[docs/adr](docs/adr): decisões do frontend, como o modo SPA e a hidratação do shell.
+[docs/adr](docs/adr): decisões do frontend, entre elas o modo SPA e o editor com salvamento automático.
