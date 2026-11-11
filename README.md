@@ -45,6 +45,7 @@ docker compose -f docker-compose.yml -f docker-compose.dev.yml up --build
 
 - O container chega na API do host via `host.docker.internal` (variável `API_UPSTREAM`).
 - O nginx usa o template `docker/nginx/default.conf.template`, que o próprio entrypoint da imagem processa com envsubst.
+- As imagens usam a tag `latest` (`oven/bun:latest` para build/dev e `nginx:latest` em produção).
 
 ## Rotas
 
